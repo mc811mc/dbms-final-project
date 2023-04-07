@@ -20,5 +20,5 @@ https://www.waterqualitydata.us/portal_userguide/
 
 ## 2. Creating Database from the downloaded data
 At first we clean the downloaded file and remove any records that is missing data for specific fields. <br>
-Also we remove the fields that is not relevant to the analysis. <br>
+Also we remove the fields that is not relevant to the analysis or has too many missing values. <br>
 
