@@ -5,6 +5,7 @@ __pycache__/
 
 # ignore folders
 my_env/
+venv_dbms/
 
 # ignore files
 .DS_Store
