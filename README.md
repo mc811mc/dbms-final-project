@@ -1,6 +1,7 @@
 # Visualizing Environmental Pollution : Air, Water Pollution Visualization Map
 
 ## 1. Using the API/ Website to fetch the data
+We have downloaded data within the year 01-01-2019 to 12-11-2021 <br>
 Download Air pollution Data from here: <br> 
 https://www.kaggle.com/datasets/mayukh18/deap-deciphering-environmental-air-pollution <br> 
 
