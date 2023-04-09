@@ -7,9 +7,8 @@ def main():
     air_dataset =  dataset.get_clean_dataset('air')
     print(air_dataset.head(2))
 
-    connectAirDatabase(air_dataset)
-    # air_dataset = pd.DataFrame(data = air_dataset)
-    # print(air_dataset.head(2))
+    # connectAirDatabase(air_dataset)
+
     water_dataset = dataset.get_clean_dataset('water')
     print(water_dataset.head(2))
 
@@ -32,7 +31,7 @@ def connectAirDatabase(dataframe):
 
     print("Connecting DB")
     try:
-        conn = sqlite3.connect("AirDatabase.db")
+        conn = sqlite3.connect("PollutionDatabase.db")
         print("Connected DB")
         cursor = conn.cursor()
         # cursor.execute("select database();")
@@ -40,8 +39,7 @@ def connectAirDatabase(dataframe):
         # print("You're connected to database: ", record)
         cursor.execute('DROP TABLE IF EXISTS iris;')
         print('Creating table....')
-        cursor.execute("""CREATE TABLE iris (sepal_length FLOAT(2,1)
-                        NOT NULL, sepal_width FLOAT(2,1) NOT NULL,
+        cursor.execute("""CREATE TABLE AIR (date date NOT NULL, sepal_width FLOAT(2,1) NOT NULL,
                         petal_length FLOAT(2,1) NOT NULL,
                         petal_width FLOAT(2,1),species CHAR(11)NOT
                         NULL)""")

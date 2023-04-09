@@ -36,6 +36,7 @@ class DATASETS():
             # just make the unavailable numerical values zero
             self.inputdf = self.inputdf.fillna(0)
             # print(self.inputdf.head(10))
+            self.inputdf.to_csv('downloaded data/filtered on location for air pollution.csv')
         
         if(self.type == 'water'):
             # drop rows of Pandas DataFrame whose value in a certain column is NaN
