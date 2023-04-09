@@ -42,8 +42,9 @@ class DATASETS():
             # drop rows of Pandas DataFrame whose value in a certain column is NaN
             self.inputdf = self.inputdf[self.inputdf['ActivityLocation/LatitudeMeasure'].notna()]
             self.inputdf = self.inputdf[self.inputdf['ActivityLocation/LongitudeMeasure'].notna()]
+            # resetting the index to 0
+            self.inputdf.reset_index(drop=True, inplace=True)
             self.inputdf.to_csv('downloaded data/filtered on location for water pollution.csv')
-
             # just make the unavailable numerical values zero
   
 

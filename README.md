@@ -20,7 +20,7 @@ User guide for this database can be found here: <br>
 https://www.waterqualitydata.us/portal_userguide/
 
 ## 2. Creating Database from the downloaded data
-At first we clean the downloaded file and remove any records that is missing data for specific fields. <br>
+At first we clean the downloaded file and remove any records that is missing data for specific fields(missing data is replacedd with zeros). <br>
 Also we remove the fields that is not relevant to the analysis or has too many missing values. <br>
 Then we create a sqlite3 database from the clean csv files which contains only feature set attributes. This SQLite database (https://docs.python.org/3/library/sqlite3.html) is a server less database and is self-contained. This is also referred to as an embedded database which means the DB engine runs as a part of the app. We utilize the SQLite Manager chrome extension (https://chrome.google.com/webstore/detail/sqlite-manager/njognipnngillknkhikjecpnbkefclfe?hl=en) to visualize or run queries on our database. <br>
 
