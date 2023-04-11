@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Locations Map</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDc2dv55pUQZVIRZMzhGDKZg_0rcejd_s0&callback=initMap" async defer></script>
+    <script>
+        function initMap() {
+            var locations = {{ locations|tojson|safe }};
+            var attribute_names = {{ attribute_names|tojson|safe }};
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 6,
+                center: new google.maps.LatLng(locations[0].latitude, locations[0].longitude)
+            });
+
+            locations.forEach(function(location) {
+                var marker = new google.maps.Marker({
+                    position: new google.maps.LatLng(location.latitude, location.longitude),
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE, // here is where we set the marker in shape of circel
+                        scale: 5,
+                        fillColor: getColorByPM25(location.pm25_median),
+                        fillOpacity: 1.0,
+                        strokeWeight: 0
+                    }
+                });
+
+                var infoWindowContent = '<div>';
+                attribute_names.forEach(function(name) {
+                    infoWindowContent += '<p>' + name + ': ' + location[name] + '</p>';
+                });
+                infoWindowContent += '</div>';
+
+                var infoWindow = new google.maps.InfoWindow({
+                    content: infoWindowContent
+                });
+
+                marker.addListener('mouseover', function() {
+                    infoWindow.open(map, marker);
+                });
+
+                marker.addListener('mouseout', function() {
+                    infoWindow.close();
+                });
+            });
+        }
+
+        function getColorByPM25(pm25) {
+            if (pm25 <= 12) {
+                return '#00E400'; // Good (Green)
+            } else if (pm25 <= 35.4) {
+                return '#FFFF00'; // Moderate (Yellow)
+            } else if (pm25 <= 55.4) {
+                return '#FF7E00'; // Unhealthy for Sensitive Groups (Orange)
+            } else if (pm25 <= 150.4) {
+                return '#FF0000'; // Unhealthy (Red)
+            } else if (pm25 <= 250.4) {
+                return '#8F3F97'; // Very Unhealthy (Purple)
+            } else {
+                return '#7E0023'; // Hazardous (Maroon)
+            }
+        }
+    </script>
+    <style>
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+</body>
+</html>
