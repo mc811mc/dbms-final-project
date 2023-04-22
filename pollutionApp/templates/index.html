@@ -22,26 +22,6 @@
             var legend = document.getElementById('legend');
             map.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(legend);
 
-            // Adding event listeners for filtering task with legend
-            document.getElementById('legend-good').addEventListener('click', function() {
-                filterMarkers(0, 12, markerCluster);
-            });
-            document.getElementById('legend-moderate').addEventListener('click', function() {
-                filterMarkers(12.1, 35.4, markerCluster);
-            });
-            document.getElementById('legend-sensitive').addEventListener('click', function() {
-                filterMarkers(35.5, 55.4, markerCluster);
-            });
-            document.getElementById('legend-unhealthy').addEventListener('click', function() {
-                filterMarkers(55.5, 150.4, markerCluster);
-            });
-            document.getElementById('legend-very-unhealthy').addEventListener('click', function() {
-                filterMarkers(150.5, 250.4, markerCluster);
-            });
-            document.getElementById('legend-hazardous').addEventListener('click', function() {
-                filterMarkers(250.5, Infinity, markerCluster);
-            });
-
             var markers = [];
 
             // Encoding data points into markers and tooltip boxes
@@ -84,6 +64,42 @@
             markerCluster = new MarkerClusterer(map, markers, {
                 imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
             });
+
+            // Event listener for the change event on the dropdown menu
+            document.getElementById('pm25-range-filter').addEventListener('change', function() {
+                    var selectedOption = this.value;
+                    var minPM25, maxPM25;
+                    switch (selectedOption) {
+                        case 'good':
+                            minPM25 = 0;
+                            maxPM25 = 12;
+                            break;
+                        case 'moderate':
+                            minPM25 = 12.1;
+                            maxPM25 = 35.4;
+                            break;
+                        case 'sensitive':
+                            minPM25 = 35.5;
+                            maxPM25 = 55.4;
+                            break;
+                        case 'unhealthy':
+                            minPM25 = 55.5;
+                            maxPM25 = 150.4;
+                            break;
+                        case 'very-unhealthy':
+                            minPM25 = 150.5;
+                            maxPM25 = 250.4;
+                            break;
+                        case 'hazardous':
+                            minPM25 = 250.5;
+                            maxPM25 = Infinity;
+                            break;
+                        default: // 'all'
+                            minPM25 = -Infinity;
+                            maxPM25 = Infinity;
+                    }
+                    filterMarkers(minPM25, maxPM25, markerCluster);
+                });
         }
 
         // Color scheme getter for pm2.5 values
@@ -136,8 +152,10 @@
     </script>
     <style>
         #map {
-            height: 100%;
+            height: calc(100% - 450px); /* Adjust the height to fit within the window's height */
             width: 100%;
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
         html, body {
             height: 100%;
@@ -146,17 +164,21 @@
         }
         .legend {
             background-color: white;
-            border: 1px solid black;
             margin: 10px;
             padding: 5px;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
+    <h1>Pollution Visualizer</h1>
     <div id="map"></div>
     <div id="legend">
         <div class="legend">
-            <div><strong>PM2.5 Levels</strong></div>
+            <div><strong>PM2.5 Levels</strong></div><br>
             <div id="legend-good" style="background-color: #00E400; width: 20px; height: 20px; display: inline-block;"></div> <= 12 (Good)
             <br>
             <div id="legend-moderate" style="background-color: #FFFF00; width: 20px; height: 20px; display: inline-block;"></div> <= 35.4 (Moderate)
@@ -170,6 +192,18 @@
             <div id="legend-hazardous" style="background-color: #7E0023; width: 20px; height: 20px; display: inline-block;"></div> > 250.4 (Hazardous)
         </div>
     </div>
-    
+    <div>
+        <h3>Controls</h3>
+        <label for="pm25-range-filter">Filter by PM2.5 Range:</label>
+        <select id="pm25-range-filter">
+            <option value="all">All</option>
+            <option value="good">Good</option>
+            <option value="moderate">Moderate</option>
+            <option value="sensitive">Unhealthy for Sensitive Groups</option>
+            <option value="unhealthy">Unhealthy</option>
+            <option value="very-unhealthy">Very Unhealthy</option>
+            <option value="hazardous">Hazardous</option>
+        </select>
+    </div>
 </body>
 </html>
