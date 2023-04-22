@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Locations Map</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/markerclustererplus/2.1.4/markerclusterer.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDc2dv55pUQZVIRZMzhGDKZg_0rcejd_s0&callback=initMap" async defer></script>
     <script>
         function initMap() {
@@ -14,19 +15,50 @@
                 zoom: 6,
                 center: new google.maps.LatLng(locations[0].latitude, locations[0].longitude)
             });
+            var markerCluster;
 
+            // Adding the legend
+            var legend = document.getElementById('legend');
+            map.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(legend);
+
+            // Adding event listeners for filtering task with legend
+            document.getElementById('legend-good').addEventListener('click', function() {
+                filterMarkers(0, 12, markerCluster);
+            });
+            document.getElementById('legend-moderate').addEventListener('click', function() {
+                filterMarkers(12.1, 35.4, markerCluster);
+            });
+            document.getElementById('legend-sensitive').addEventListener('click', function() {
+                filterMarkers(35.5, 55.4, markerCluster);
+            });
+            document.getElementById('legend-unhealthy').addEventListener('click', function() {
+                filterMarkers(55.5, 150.4, markerCluster);
+            });
+            document.getElementById('legend-very-unhealthy').addEventListener('click', function() {
+                filterMarkers(150.5, 250.4, markerCluster);
+            });
+            document.getElementById('legend-hazardous').addEventListener('click', function() {
+                filterMarkers(250.5, Infinity, markerCluster);
+            });
+
+            var markers = [];
+
+            // Encoding data points into markers and tooltip boxes
             locations.forEach(function(location) {
                 var marker = new google.maps.Marker({
                     position: new google.maps.LatLng(location.latitude, location.longitude),
                     map: map,
                     icon: {
                         path: google.maps.SymbolPath.CIRCLE, // here is where we set the marker in shape of circel
-                        scale: 5,
+                        scale: 9,
                         fillColor: getColorByPM25(location.pm25_median),
                         fillOpacity: 1.0,
-                        strokeWeight: 0
-                    }
+                        strokeWeight: 0.8
+                    },
+                    pm25_median: location.pm25_median
                 });
+
+                markers.push(marker)
 
                 var infoWindowContent = '<div>';
                 attribute_names.forEach(function(name) {
@@ -46,8 +78,14 @@
                     infoWindow.close();
                 });
             });
+
+            // initializing the marker Cluster
+            markerCluster = new MarkerClusterer(map, markers, {
+                imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
+            });
         }
 
+        // Color scheme getter for pm2.5 values
         function getColorByPM25(pm25) {
             if (pm25 <= 12) {
                 return '#00E400'; // Good (Green)
@@ -63,6 +101,21 @@
                 return '#7E0023'; // Hazardous (Maroon)
             }
         }
+
+        // Marker filter
+        function filterMarkers(minPM25, maxPM25, markerCluster) {
+            var markers = markerCluster.getMarkers();
+            for (var i = 0; i < markers.length; i++) {
+                var markerPM25 = parseFloat(markers[i].pm25_median);
+                if (markerPM25 >= minPM25 && markerPM25 <= maxPM25) {
+                    markers[i].setVisible(true);
+                } else {
+                    markers[i].setVisible(false);
+                }
+            }
+            markerCluster.repaint(); // Refresh the clusters after filtering
+        }
+
     </script>
     <style>
         #map {
@@ -74,9 +127,32 @@
             margin: 0;
             padding: 0;
         }
+        .legend {
+            background-color: white;
+            border: 1px solid black;
+            margin: 10px;
+            padding: 5px;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
+    <div id="legend">
+        <div class="legend">
+            <div><strong>PM2.5 Levels</strong></div>
+            <div id="legend-good" style="background-color: #00E400; width: 20px; height: 20px; display: inline-block;"></div> <= 12 (Good)
+            <br>
+            <div id="legend-moderate" style="background-color: #FFFF00; width: 20px; height: 20px; display: inline-block;"></div> <= 35.4 (Moderate)
+            <br>
+            <div id="legend-sensitive" style="background-color: #FF7E00; width: 20px; height: 20px; display: inline-block;"></div> <= 55.4 (Unhealthy for Sensitive Groups)
+            <br>
+            <div id="legend-unhealthy" style="background-color: #FF0000; width: 20px; height: 20px; display: inline-block;"></div> <= 150.4 (Unhealthy)
+            <br>
+            <div id="legend-very-unhealthy" style="background-color: #8F3F97; width: 20px; height: 20px; display: inline-block;"></div> <= 250.4 (Very Unhealthy)
+            <br>
+            <div id="legend-hazardous" style="background-color: #7E0023; width: 20px; height: 20px; display: inline-block;"></div> > 250.4 (Hazardous)
+        </div>
+    </div>
+    
 </body>
 </html>
