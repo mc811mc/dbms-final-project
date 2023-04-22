@@ -103,21 +103,22 @@
             }
         }
 
+        function setAllMarkersVisible(visible, markers) {
+            for (var i = 0; i < markers.length; i++) {
+                markers[i].setVisible(visible);
+            }
+        }
+
         // Marker filter
         function filterMarkers(minPM25, maxPM25, markerCluster) {
             var markers = markerCluster.getMarkers();
 
             if (selectedRange && selectedRange[0] === minPM25 && selectedRange[1] === maxPM25) {
                 selectedRange = null;
-                for (var i = 0; i < markers.length; i++) {
-                    markers[i].setVisible(true);
-                }
+                setAllMarkersVisible(true, markers);
             } else {
-                if (selectedRange) {
-                    for (var i = 0; i < markers.length; i++) {
-                        markers[i].setVisible(true);
-                    }
-                }
+                if (selectedRange)
+                    setAllMarkersVisible(true, markers);
 
                 selectedRange = [minPM25, maxPM25];
                 for (var i = 0; i < markers.length; i++) {
