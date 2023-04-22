@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/markerclustererplus/2.1.4/markerclusterer.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDc2dv55pUQZVIRZMzhGDKZg_0rcejd_s0&callback=initMap" async defer></script>
     <script>
+        var selectedRange = null; // this will keep track of the currently selected legend item
         function initMap() {
             var locations = {{ locations|tojson|safe }};
             var attribute_names = {{ attribute_names|tojson|safe }};
@@ -105,12 +106,27 @@
         // Marker filter
         function filterMarkers(minPM25, maxPM25, markerCluster) {
             var markers = markerCluster.getMarkers();
-            for (var i = 0; i < markers.length; i++) {
-                var markerPM25 = parseFloat(markers[i].pm25_median);
-                if (markerPM25 >= minPM25 && markerPM25 <= maxPM25) {
+
+            if (selectedRange && selectedRange[0] === minPM25 && selectedRange[1] === maxPM25) {
+                selectedRange = null;
+                for (var i = 0; i < markers.length; i++) {
                     markers[i].setVisible(true);
-                } else {
-                    markers[i].setVisible(false);
+                }
+            } else {
+                if (selectedRange) {
+                    for (var i = 0; i < markers.length; i++) {
+                        markers[i].setVisible(true);
+                    }
+                }
+
+                selectedRange = [minPM25, maxPM25];
+                for (var i = 0; i < markers.length; i++) {
+                    var markerPM25 = parseFloat(markers[i].pm25_median);
+                    if (markerPM25 >= minPM25 && markerPM25 <= maxPM25) {
+                        markers[i].setVisible(true);
+                    } else {
+                        markers[i].setVisible(false);
+                    }
                 }
             }
             markerCluster.repaint(); // Refresh the clusters after filtering
