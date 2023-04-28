@@ -12,38 +12,8 @@ document.getElementById('city_select').addEventListener('change', function() {
     drawLineChart(selectedCity, selectedYear);
 });
 
-
 // helper method that will compute the monthly averages for the selections
 function calculateMonthlyAverages(filteredLocations) {
-    // var monthlyAverages = [];
-
-    // for (var month = 1; month <= 12; month++) {
-    //     var monthData = filteredLocations.filter(function(location) {
-    //         return new Date(location.Date).getMonth() + 1 === month;
-    //     });
-
-    //     var monthlyTotal = {
-    //         pm25: 0,
-    //         count: monthData.length
-    //     };
-
-    //     monthData.forEach(function(location) {
-            
-    //         monthlyTotal.pm25 += location.pm25_median ? location.pm25_median : 0;
-    //     });
-
-    //     // makes sure that if monthlyAverages has NaN in pm25 we replace that with 0 (happened when using a small dataset)
-    //     var averagePm25 = monthlyTotal.pm25 / monthlyTotal.count;
-    //     averagePm25 = isNaN(averagePm25) ? 0 : averagePm25;
-
-    //     monthlyAverages.push({
-    //         month: month,
-    //         pm25: averagePm25
-    //     });
-    // }
-    // return monthlyAverages;
-
-
     const monthlyTotals = Array(12).fill(null).map((_, index) => ({
         month: index + 1,
         pm25: 0,
@@ -74,7 +44,6 @@ function calculateMonthlyAverages(filteredLocations) {
         co: total.co / total.count || 0,
         so2: total.so2 / total.count || 0,
     }));
-
     return monthlyAverages;
 }
 
@@ -229,37 +198,6 @@ function drawLineChart(city, year) {
 //  console.log('filtered locations: ', filteredLocations);
 //  console.log('monthly avgs: ', monthlyAverages);
 
-  // Create a line generator
-//   const line = d3
-//     .line()
-//     .x((d) => xScale(d.month))
-//     .y((d) => yScale(d.pm25));
-
-  // Draw the line
-//   svg.append("path")
-//     .datum(monthlyAverages)
-//     .attr("class", "line")
-//     .attr("d", line)
-//     .attr("fill", "none")
-//     .attr("stroke", "steelblue")
-//     .attr("stroke-width", 1.5);
-
-  // Legend
-//   const legend = svg.append("g")
-//         .attr("transform", `translate(${width - 150}, ${20})`); // moving values in translate can help adjust the position of the legend
-
-//     legend.append("circle")
-//         .attr("cx", 10)
-//         .attr("cy", 10)
-//         .attr("r", 5)
-//         .style("fill", "steelblue");
-
-//     legend.append("text")
-//         .attr("x", 20)
-//         .attr("y", 15)
-//         .text("PM2.5")
-//         .style("font-size", "12px");
-
     const pollutants = [
         { key: "pm25", color: "steelblue", label: "PM2.5" },
         { key: "o3", color: "red", label: "O3" },
@@ -298,3 +236,4 @@ function drawLineChart(city, year) {
     });
 
 }
+
