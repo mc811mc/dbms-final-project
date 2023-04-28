@@ -12,11 +12,15 @@ def main():
 
     water_dataset = dataset.get_clean_dataset('water')
     print(water_dataset.head(2))
-    connectWaterDatabase(water_dataset)
+    # Since WATER table is already created- it's commented
+    # connectWaterDatabase(water_dataset)
 
     # for checking the code - database creation with iris dataset
     # dataframe = dummyDatabase()
     # connectDatabase(dataframe)
+
+    ret_val = makePrediction(air_dataset)
+    print('showing ',ret_val)
 
 
 def dummyDatabase():
@@ -204,11 +208,28 @@ def connectDatabase(dataframe):
 #             print(i)
 
 #     except sqlite3.Error as e:
-#         print("Error while connecting to SQL ", e)    
+#         print("Error while connecting to SQL ", e) 
+# 
+
+def makePrediction(database):
+    # plot for visualization
+    # target_column = 'pm10_median'
+    # print(database.groupby([target_column]).count())
+    print(database.columns)
+    database.Date = pd.to_datetime(database.Date)
+
+    print('Splliting one column to several ones')
+    database['day'] = database['Date'].dt.day
+    database['month'] = database['Date'].dt.month
+    database['year'] = database['Date'].dt.year
+    print(database.columns)
+    print(database.head())
+    database.to_csv('downloaded data/filtered air pollution with date day month.csv')
+    sum = 0
+    return sum
 
 if __name__ == '__main__':
     # args = gv.args
-    print('hello')
     # if args.data_partition_type is 'normalOverAll':
     #     # args.epochs = 60
     # else:
