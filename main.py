@@ -12,7 +12,8 @@ def main():
 
     water_dataset = dataset.get_clean_dataset('water')
     print(water_dataset.head(2))
-    connectWaterDatabase(water_dataset)
+    # Since WATER table is already created- it's commented
+    # connectWaterDatabase(water_dataset)
 
     # for checking the code - database creation with iris dataset
     # dataframe = dummyDatabase()
