@@ -6,7 +6,7 @@ app = Flask(__name__)
 @app.route('/')
 def show_map():
     # Read CSV data into a DataFrame
-    file_path = "airPollution30.csv"
+    file_path = "airPollutionCleaned30.csv"
     airData = pd.read_csv(file_path)
 
     # Create a list of (latitude, longitude) tuples

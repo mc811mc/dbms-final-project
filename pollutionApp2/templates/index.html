@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/styles.css">
+    <title>Pollution Visualizer</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://unpkg.com/topojson@3"></script>
+</head>
+<body>
+    <h1>Pollution Visualizer</h1>
+    <div id="map-and-legend-container">
+        <div id="legend"></div>
+        <div id="map-container">
+            <svg id="map" width="960" height="600"></svg>
+        </div>
+    </div>
+    
+    <div>
+        <h3>Control Panel</h3>
+        <label for="pm25-range-filter">Filter by PM2.5 Range:</label>
+        <select id="pm25-range-filter">
+            <option value="all">All</option>
+            <option value="good">Good</option>
+            <option value="moderate">Moderate</option>
+            <option value="sensitive">Unhealthy for Sensitive Groups</option>
+            <option value="unhealthy">Unhealthy</option>
+            <option value="very-unhealthy">Very Unhealthy</option>
+            <option value="hazardous">Hazardous</option>
+        </select>
+        <select id="year_select">
+            <option value="" selected>-- Select a Year --</option>
+            {% for year in unique_years %}
+            <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
+        <select id="city_select">
+            <option value="" selected>-- Select a City --</option>
+            {% for city in unique_cities %}
+            <option value="{{ city }}">{{ city }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div id="line_chart" style="width: 100%; height: 300px;"></div>
+    <script>
+        var locations = {{ locations|tojson|safe }};
+        var attribute_names = {{ attribute_names|tojson|safe }};
+    </script>
+    <script src="../static/js/script.js"></script>
+</body>
+</html>
