@@ -44,6 +44,8 @@
         </select>
     </div>
     <div id="line_chart" style="width: 100%; height: 300px;"></div>
+    <div id="stacked_bar_chart"></div>
+    <div id="scatter_plot"></div>
     <script>
         var locations = {{ locations|tojson|safe }};
         var attribute_names = {{ attribute_names|tojson|safe }};

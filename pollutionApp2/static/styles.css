@@ -53,3 +53,7 @@ h1 {
     font-family: sans-serif;
     font-size: 11px;
 }
+
+#line_chart, #stacked_bar_chart {
+    display: inline-block;
+}
