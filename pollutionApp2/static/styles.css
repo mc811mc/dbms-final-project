@@ -55,5 +55,14 @@ h1 {
 }
 
 #line_chart, #stacked_bar_chart {
-    display: inline-block;
+    /* display: inline-block; */
+}
+
+#plots-flex-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+#line_chart, #stacked_bar_chart, #scatter_plot_container {
+    width: 40vw;
 }

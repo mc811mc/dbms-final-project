@@ -1,13 +1,25 @@
 /****** EVENT LISTENERS FOR CONTROL PANEL *******/
+// year_select listener for map, linechart, stacked bar chart and scatter plot
 document.getElementById('year_select').addEventListener('change', function() {
     var selectedCity = document.getElementById('city_select').value;
     var selectedYear = parseInt(this.value);
     drawLineChart(selectedCity, selectedYear);
     drawGeoChart(selectedYear); // Add this line to update the map markers
     drawStackedBarChart(selectedYear);
+    var selectedPollutant = document.getElementById('pollutant_select').value;
+    drawScatterPlot(selectedYear, selectedPollutant);
+    var pm25Filter = document.getElementById('pm25-range-filter').value;
+    drawGeoChart(selectedYear, pm25Filter);
 });
 
-// event listeners for drop down menus of the line chart
+// pm25-range-filter listener for pm2.5 filtering on map
+document.getElementById('pm25-range-filter').addEventListener('change', function() {
+    var selectedYear = parseInt(document.getElementById('year_select').value);
+    var pm25Filter = this.value;
+    drawGeoChart(selectedYear, pm25Filter);
+});
+
+// city_select listener for line chart
 document.getElementById('city_select').addEventListener('change', function() {
     var selectedCity = this.value;
     var selectedYear = parseInt(document.getElementById('year_select').value);
@@ -50,12 +62,12 @@ drawMap();
 
 function drawMapLegend() {
     const legendData = [
-        {label: "Good (0-12)", color: "green"},
-        {label: "Moderate (12.1-35.4)", color: "yellow"},
-        {label: "Unhealthy for Sensitive Groups (35.5-55.4)", color: "orange"},
-        {label: "Unhealthy (55.5-150.4)", color: "red"},
-        {label: "Very Unhealthy (150.5-250.4)", color: "purple"},
-        {label: "Hazardous (250.5+)", color: "maroon"}
+        {label: "Good (0-50)", color: "green"},
+        {label: "Moderate (51-100)", color: "yellow"},
+        {label: "Unhealthy for Sensitive Groups (101-150)", color: "orange"},
+        {label: "Unhealthy (151-200)", color: "red"},
+        {label: "Very Unhealthy (201-300)", color: "purple"},
+        {label: "Hazardous (301-500)", color: "maroon"}
     ];
 
     const legend = d3.select("#legend")
@@ -80,24 +92,44 @@ function drawMapLegend() {
 // Calling drawLegend
 drawMapLegend();
 
-// helper for color scheme on map
+// helper for color scheme for markers on map
 function pm25ColorScale(value) {
-    if (value <= 12) {
+    if (value <= 50) {
         return "green";
-    } else if (value <= 35.4) {
+    } else if (value <= 100) {
         return "yellow";
-    } else if (value <= 55.4) {
+    } else if (value <= 150) {
         return "orange";
-    } else if (value <= 150.4) {
+    } else if (value <= 200) {
         return "red";
-    } else if (value <= 250.4) {
+    } else if (value <= 300) {
         return "purple";
     } else {
         return "maroon";
     }
 }
 
-function drawGeoChart(selectedYear) {
+// helper for hide/display logic of markers on map
+function pm25FilterRange(filter) {
+    switch (filter) {
+        case "good":
+            return [0, 50];
+        case "moderate":
+            return [51, 100];
+        case "unhealthy-for-sg":
+            return [101, 150];
+        case "unhealthy":
+            return [151, 200];
+        case "very-unhealthy":
+            return [201, 300];
+        case "hazardous":
+            return [301, 500];
+        default:
+            return [0, 500];
+    }
+}
+
+function drawGeoChart(selectedYear, pm25Filter) {
     const width = 960,
         height = 600;
 
@@ -106,14 +138,23 @@ function drawGeoChart(selectedYear) {
     const svg = d3.select("#map");
     svg.selectAll(".marker").remove();
 
+    // filter by year
     const filteredLocations = locations.filter(function (location) {
         var locationYear = new Date(location.Date).getFullYear();
         return locationYear === selectedYear;
     });
 
+    const selectedPmRange = pm25FilterRange(pm25Filter);
+
+    // filter by PM range
+    const filteredYearPm = filteredLocations.filter(d => {
+        return d.pm25_median >= selectedPmRange[0] && 
+        d.pm25_median <= selectedPmRange[1];
+    });
+
     svg.append("g")
         .selectAll(".marker")
-        .data(filteredLocations)
+        .data(filteredYearPm)
         .join("circle")
         .attr("class", "marker")
         .attr("cx", (d) => projection([d.longitude, d.latitude])[0])
@@ -121,7 +162,6 @@ function drawGeoChart(selectedYear) {
         .attr("r", 3) // Adjust the marker size
         .attr("fill", (d) => pm25ColorScale(d.pm25_median)); // Adjust the marker color based on the pm2.5 logic defined
 }
-
 
 // ******* LINE CHART ****** //
 
@@ -225,7 +265,7 @@ function drawLineChart(city, year) {
 
         // Add legend
         const legend = svg.append("g")
-            .attr("transform", `translate(${width - 150}, ${20 + 20 * index})`);
+            .attr("transform", `translate(${width - 80}, ${20 + 20 * index})`);
 
         legend.append("circle")
             .attr("cx", 10)
@@ -298,7 +338,6 @@ function calculateCountyAverages(filteredData) {
     return countyAverages;
 }
 function drawStackedBarChart(selectedYear) {
-
     // Filter data for the selected year
     const filteredData = locations.filter(function (location) {
         var locationYear = new Date(location.Date).getFullYear();
@@ -311,7 +350,7 @@ function drawStackedBarChart(selectedYear) {
     // Sort by the sum of all the averaged pollutants and slice to the top 5 based on 'total'
     const top5Counties = countyData.sort((a, b) => b.total - a.total).slice(0, 5);
 
-    const margin = { top: 20, right: 20, bottom: 30, left: 50 };
+    const margin = { top: 20, right: 20, bottom: 30, left: 0 };
     const width = 800 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
 
@@ -329,7 +368,7 @@ function drawStackedBarChart(selectedYear) {
       .scaleBand()
       .domain(top5Counties.map((d) => d.county))
       .range([0, width])
-      .padding(0.1);
+      .padding(0.3);
   
     const yScale = d3
       .scaleLinear()
@@ -369,7 +408,7 @@ function drawStackedBarChart(selectedYear) {
     
     // Add legend
     const legend = svg.append("g")
-        .attr("class", "legend").attr("transform", `translate(${width - 120}, ${10})`);
+        .attr("class", "legend").attr("transform", `translate(${width - 80}, ${2})`);
   
     pollutants.forEach((pollutant, i) => {
       const legendItem = legend.append("g").attr("transform", `translate(0, ${i * 20})`);
@@ -387,3 +426,82 @@ function drawStackedBarChart(selectedYear) {
         .style("font-size", "12px");
     });
 }
+
+
+// ******* SCATTER PLOT ****** //
+document.getElementById("pollutant_select").addEventListener("change", function () {
+    const selectedPollutant = this.value;
+    const selectedYear = parseInt(document.getElementById("year_select").value);
+    drawScatterPlot(selectedYear, selectedPollutant);
+  });
+
+
+function drawScatterPlot(selectedYear, selectedPollutant) {
+    // Filter data for the selected year and pollutant
+    const filteredData = locations.filter(function (location) {
+      const locationYear = new Date(location.Date).getFullYear();
+      return locationYear === selectedYear && location[selectedPollutant] !== null;
+    });
+  
+    // // Map the filtered data to extract the month and the selected pollutant value
+    // const mappedData = filteredData.map(function (location) {
+    //   const date = new Date(location.Date);
+    //   const month = date.getMonth();
+    //   const value = location[selectedPollutant];
+    //   return { month, value };
+    // });
+
+    // Map the filtered data to extract the month and the selected pollutant value
+    const mappedData = filteredData.reduce(function(acc, location) {
+        const date = new Date(location.Date);
+        const month = date.getMonth();
+        const value = location[selectedPollutant];
+        
+        if (acc[month]) {
+            acc[month].sum += value;
+            acc[month].count += 1;
+        } else {
+            acc[month] = {
+            month: month,
+            value: 0,
+            sum: value,
+            count: 1
+            };
+        }
+        return acc;
+    }, []).map(function (d) {
+        d.value = d.sum / d.count;
+        delete d.sum;
+        delete d.count;
+        return d;
+    });
+
+    // Define the x and y scales
+    const xScale = d3.scaleLinear().domain([0, 11]).range([50, 450]);
+    const yScale = d3.scaleLinear().domain([0, d3.max(mappedData, (d) => d.value)]).range([250, 50]);
+  
+    // Append the scatter plot points
+    d3.select("#scatter_plot svg").remove(); // acts as refresher of the visualization
+  
+    const svg = d3.select("#scatter_plot").append("svg").attr("width", 500).attr("height", 300);
+  
+    svg
+      .selectAll("circle")
+      .data(mappedData)
+      .enter()
+      .append("circle")
+      .attr("cx", (d) => xScale(d.month))
+      .attr("cy", (d) => yScale(d.value))
+      .attr("r", 5)
+      .style("fill", "steelblue");
+
+    // Append the x-axis
+    svg.append("g")
+      .attr("transform", "translate(0,250)")
+      .call(d3.axisBottom(xScale).tickFormat((d) => d + 1));
+
+    // Append the y-axis
+    svg.append("g")
+      .attr("transform", "translate(50,0)")
+      .call(d3.axisLeft(yScale));
+  }
