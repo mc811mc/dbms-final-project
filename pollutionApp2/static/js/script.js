@@ -9,14 +9,34 @@ document.getElementById('year_select').addEventListener('change', function() {
     var selectedPollutant = document.getElementById('pollutant_select').value;
     drawScatterPlot(selectedYear, selectedPollutant);
     var pm25Filter = document.getElementById('pm25-range-filter').value;
-    drawGeoChart(selectedYear, pm25Filter);
+    var selectedMonth = parseInt(document.getElementById('month_select').value);
+    var selectedDay = parseInt(document.getElementById('day_select').value);
+    drawGeoChart(selectedYear, pm25Filter,selectedMonth, selectedDay);
 });
 
 // pm25-range-filter listener for pm2.5 filtering on map
 document.getElementById('pm25-range-filter').addEventListener('change', function() {
     var selectedYear = parseInt(document.getElementById('year_select').value);
     var pm25Filter = this.value;
-    drawGeoChart(selectedYear, pm25Filter);
+    var selectedMonth = parseInt(document.getElementById('month_select').value);
+    var selectedDay = parseInt(document.getElementById('day_select').value);
+    drawGeoChart(selectedYear, pm25Filter,selectedMonth, selectedDay);
+});
+
+document.getElementById('month_select').addEventListener('change', function() {
+    var selectedYear = parseInt(document.getElementById('year_select').value);
+    var pm25Filter = document.getElementById('pm25-range-filter').value;
+    var selectedMonth = parseInt(document.getElementById('month_select').value);
+    var selectedDay = parseInt(document.getElementById('day_select').value);
+    drawGeoChart(selectedYear, pm25Filter,selectedMonth, selectedDay);
+});
+
+document.getElementById('day_select').addEventListener('change', function() {
+    var selectedYear = parseInt(document.getElementById('year_select').value);
+    var pm25Filter = document.getElementById('pm25-range-filter').value;
+    var selectedMonth = parseInt(document.getElementById('month_select').value);
+    var selectedDay = parseInt(document.getElementById('day_select').value);
+    drawGeoChart(selectedYear, pm25Filter,selectedMonth, selectedDay);
 });
 
 // city_select listener for line chart
@@ -25,7 +45,6 @@ document.getElementById('city_select').addEventListener('change', function() {
     var selectedYear = parseInt(document.getElementById('year_select').value);
     drawLineChart(selectedCity, selectedYear);
 });
-
 
 function drawMap() {
     // dimension of themap
@@ -129,7 +148,7 @@ function pm25FilterRange(filter) {
     }
 }
 
-function drawGeoChart(selectedYear, pm25Filter) {
+function drawGeoChart(selectedYear, pm25Filter, selectedMonth, selectedDay) {
     const width = 960,
         height = 600;
 
@@ -138,14 +157,18 @@ function drawGeoChart(selectedYear, pm25Filter) {
     const svg = d3.select("#map");
     svg.selectAll(".marker").remove();
 
-    // filter by year
+    // filter by year, month, and day
     const filteredLocations = locations.filter(function (location) {
-        var locationYear = new Date(location.Date).getFullYear();
-        return locationYear === selectedYear;
+        var locationDate = new Date(location.Date);
+        var locationYear = locationDate.getFullYear();
+        var locationMonth = locationDate.getMonth() + 1;
+        var locationDay = locationDate.getDate();
+        return locationYear === selectedYear && locationMonth === selectedMonth && locationDay === selectedDay;
     });
 
     const selectedPmRange = pm25FilterRange(pm25Filter);
 
+    // todo: maybe add the aqi calculation here
     // filter by PM range
     const filteredYearPm = filteredLocations.filter(d => {
         return d.pm25_median >= selectedPmRange[0] && 
@@ -203,7 +226,7 @@ function calculateMonthlyAverages(filteredLocations) {
 function drawLineChart(city, year) {
     // Set up the SVG and dimensions for the line chart
   const margin = { top: 20, right: 20, bottom: 30, left: 50 };
-  const width = 800 - margin.left - margin.right;
+  const width = 650 - margin.left - margin.right;
   const height = 400 - margin.top - margin.bottom;
 
   d3.select("#line_chart svg").remove();
@@ -351,7 +374,7 @@ function drawStackedBarChart(selectedYear) {
     const top5Counties = countyData.sort((a, b) => b.total - a.total).slice(0, 5);
 
     const margin = { top: 20, right: 20, bottom: 30, left: 0 };
-    const width = 800 - margin.left - margin.right;
+    const width = 550 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
 
     d3.select("#stacked_bar_chart svg").remove();
