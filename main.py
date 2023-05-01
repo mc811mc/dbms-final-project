@@ -6,10 +6,13 @@ from numpy import mean
 from numpy import std
 from sklearn.datasets import make_regression
 from sklearn.model_selection import RepeatedKFold
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense
 import matplotlib.pyplot as plt
 import seaborn as sns
+import re
 
 def main():
     air_dataset =  dataset.get_clean_dataset('air')
@@ -27,6 +30,23 @@ def main():
     # dataframe = dummyDatabase()
     # connectDatabase(dataframe)
 
+    # Rename column names
+    target_columns = ['o3_median', 'pressure_median', 'pm25_median', 'humidity_median', 'temperature_median', 'dew_median',
+                      'no2_median', 'wind-speed_median', 'co_median', 'so2_median', 'pm10_median', 'wind-gust_median']
+    print('using re')
+    target_columns_renamed = []
+    for x in target_columns:
+        target_columns_renamed.append(x.replace('_median', ''))
+        print(x, x.replace('_median', ''))
+    print(target_columns_renamed)
+    for i in range(0, len(target_columns)):
+        print('\"%s\" : \"%s\"' %(target_columns[i],target_columns_renamed[i]))
+
+    air_dataset = air_dataset.rename(columns={"o3_median" : "o3", "pressure_median" : "pressure", "pm25_median" : "pm25", "humidity_median" : "humidity", "temperature_median" : "temperature", "dew_median" : "dew", "no2_median" : "no2", "wind-speed_median" : "wind-speed", "co_median" : "co",
+                                "so2_median" : "so2", "pm10_median" : "pm10", "wind-gust_median" : "wind-gust"} )
+    print(air_dataset.head(2))
+    print("Finding the correlation")
+    findCorrelation(air_dataset)
     ret_val = makePrediction(air_dataset)
     print('showing ',ret_val)
 
@@ -219,6 +239,32 @@ def connectDatabase(dataframe):
 #         print("Error while connecting to SQL ", e) 
 # 
 
+def findCorrelation(database):
+    target_columns = ['o3', 'pressure', 'pm25', 'humidity', 'temperature', 'dew', 'no2', 'wind-speed', 'co', 'so2', 'pm10', 'wind-gust']
+    # target_columns = ['o3_median', 'pressure_median', 'pm25_median', 'humidity_median', 'temperature_median', 'dew_median',
+    #                   'no2_median', 'wind-speed_median', 'co_median', 'so2_median', 'pm10_median', 'wind-gust_median']
+    target_df = database[[x for x in target_columns]]
+    print(target_df)
+
+    # Correlation matrix
+    corr_matrix = target_df.corr(method = 'spearman')
+    # # print(corr_matrix)
+    sns.heatmap(corr_matrix, annot=False)
+    plt.show()
+
+def label_encoder(dataframe, categorical_columns):
+    le = LabelEncoder()
+    for x in categorical_columns:
+        dataframe[x] = le.fit_transform(dataframe[x])
+    print(dataframe.head())
+
+def feature_scaling(y):
+    #Feature Scaling (Standardize the data)
+    sc = StandardScaler()
+    y_std = sc.fit_transform(y)
+    print(y_std.size)
+    return y_std
+
 def makePrediction(database):
     # plot for visualization
     # target_column = 'pm10_median'
@@ -230,34 +276,39 @@ def makePrediction(database):
     database['day'] = database['Date'].dt.day
     database['month'] = database['Date'].dt.month
     database['year'] = database['Date'].dt.year
+    # dropping the unnecessary column
+    database = database.drop('Date', axis=1)
     print(database.columns)
     print(database.head())
     database.to_csv('downloaded data/filtered air pollution with date day month.csv')
 
+    print(database.dtypes)
+    # Only City, County and States are categorical variables
+    categorical_columns = ['City', 'County', 'State']
+    label_encoder(database, categorical_columns)
+    print("Label encoding for categorical variables")
+    print(database.head(6))
+
+    # 
+
+    # Separating Feature set and target from the dataframe
+    feature_columns = ['day', 'month', 'year', 'State', 'County', 'City']
+    X = database[[x for x in feature_columns]]
+    print(X.head())
+
+    target_columns = ['o3', 'pressure', 'pm25', 'humidity', 'temperature', 'dew', 'no2', 'wind-speed', 'co', 'so2', 'pm10', 'wind-gust']
+    # target_columns = ['o3_median', 'pressure_median', 'pm25_median', 'humidity_median', 'temperature_median', 'dew_median',
+    #                   'no2_median', 'wind-speed_median', 'co_median', 'so2_median', 'pm10_median', 'wind-gust_median']
+    y = database[[x for x in target_columns]]
+    print(y.head())
+
+    # # Feature Scaling (Standardize the data)
+    # print("Standardizing the data")
+    # y_std = feature_scaling(y)
     
-    # fixing the sequence
-    target_columns = ['o3_median', 'pressure_median', 'pm25_median', 'humidity_median', 'temperature_median', 'dew_median',
-                      'no2_median', 'wind-speed_median', 'co_median', 'so2_median', 'pm10_median', 'wind-gust_median']
-    target_df = database[[x for x in target_columns]]
-    print(target_df)
-    # column_list = list(traindata.columns)
-    # # print(column_list)
-    # column_list.remove('label')
-    # # print(column_list)
-    # column_list.append('label')
-    # print(column_list)
+    # print(y_std.size)
 
-    # traindata = traindata[[x for x in column_list]]
-    # print(traindata.head())
-
-    # testdata = testdata[[x for x in column_list]]
-    # print(testdata.head())
-
-    # Correlation matrix
-    corr_matrix = target_df.corr(method = 'spearman')
-    # # print(corr_matrix)
-    sns.heatmap(corr_matrix, annot=False)
-    plt.show()
+    
 
     # # mlp for multi-output regression
     # # get the dataset
