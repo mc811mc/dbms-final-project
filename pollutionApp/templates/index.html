@@ -41,14 +41,16 @@
             <option value="very-unhealthy">Very Unhealthy</option>
             <option value="hazardous">Hazardous</option>
         </select>
-        <select id="city_select">
-            {% for city in unique_cities %}
-            <option value="{{ city }}">{{ city }}</option>
-            {% endfor %}
-        </select>
         <select id="year_select">
+            <option value="" selected>-- Select a Year --</option>
             {% for year in unique_years %}
             <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
+        <select id="city_select">
+            <option value="" selected>-- Select a City --</option>
+            {% for city in unique_cities %}
+            <option value="{{ city }}">{{ city }}</option>
             {% endfor %}
         </select>
     </div>

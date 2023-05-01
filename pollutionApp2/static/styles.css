@@ -1,0 +1,68 @@
+#map-and-legend-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    align-items: center;
+}
+
+#legend {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-right: 20px;
+}
+
+#map-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+#map {
+    height: calc(100% - 460px); /* Adjust the height to fit within the window's height */
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Line Chart */
+
+.line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 2;
+  }
+  
+.axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+}
+
+#line_chart, #stacked_bar_chart {
+    /* display: inline-block; */
+}
+
+#plots-flex-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+#line_chart, #stacked_bar_chart, #scatter_plot_container {
+    width: 40vw;
+}
