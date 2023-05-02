@@ -6,4 +6,5 @@ mysql.connector
 scikit-learn
 tensorflow
 keras
+flask
 # sqlite3

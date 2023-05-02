@@ -380,7 +380,7 @@ def makePrediction(dataframe):
     print(dataframe.head(5))
 
     # Separating Feature set and target from the dataframe
-    feature_columns = ['day', 'month', 'year', 'State', 'County', 'City']
+    feature_columns = ['day', 'month', 'year', 'City' , 'County', 'State']
     X = dataframe[[x for x in feature_columns]]
     # print("X to numpy")
     x_numpy = X.to_numpy()
