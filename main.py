@@ -8,6 +8,7 @@ from sklearn.datasets import make_regression
 from sklearn.model_selection import RepeatedKFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Dense
 import matplotlib.pyplot as plt
@@ -47,8 +48,9 @@ def main():
     print(air_dataset.head(2))
     print("Finding the correlation")
     findCorrelation(air_dataset)
-    ret_val = makePrediction(air_dataset)
-    print('showing ',ret_val)
+    print("Making Prediction")
+    makePrediction(air_dataset)
+    
 
 
 def dummyDatabase():
@@ -250,12 +252,13 @@ def findCorrelation(database):
     corr_matrix = target_df.corr(method = 'spearman')
     # # print(corr_matrix)
     sns.heatmap(corr_matrix, annot=False)
-    plt.show()
+    # plt.show()
 
 def label_encoder(dataframe, categorical_columns):
     le = LabelEncoder()
     for x in categorical_columns:
         dataframe[x] = le.fit_transform(dataframe[x])
+    print('After label encoding')
     print(dataframe.head())
 
 def feature_scaling(y):
@@ -265,10 +268,7 @@ def feature_scaling(y):
     print(y_std.size)
     return y_std
 
-def makePrediction(database):
-    # plot for visualization
-    # target_column = 'pm10_median'
-    # print(database.groupby([target_column]).count())
+def splitColumn(database):
     print(database.columns)
     database.Date = pd.to_datetime(database.Date)
 
@@ -281,84 +281,156 @@ def makePrediction(database):
     print(database.columns)
     print(database.head())
     database.to_csv('downloaded data/filtered air pollution with date day month.csv')
+    return database
 
-    print(database.dtypes)
+# get the model
+def get_model(n_inputs, n_outputs):
+    model = Sequential()
+    model.add(Dense(20, input_dim=n_inputs, kernel_initializer='he_uniform', activation='relu'))
+    model.add(Dense(n_outputs))
+    model.compile(loss='mae', optimizer='adam')
+    # print(model)
+    return model
+
+
+# evaluate a model using repeated k-fold cross-validation
+def evaluate_model(X, y):
+    results = list()
+    n_inputs, n_outputs = X.shape[1], y.shape[1]
+    print(n_inputs, n_outputs)
+    # X = X.drop(X.index[0])
+    # print(X.head())
+    # y = y.drop(y.index[0])
+    # print(y.head())
+    
+    # define evaluation procedure
+    cv = RepeatedKFold(n_splits=2, n_repeats=1, random_state=42)
+    # enumerate folds
+    count = 0
+    for train_ix, test_ix in cv.split(X):
+        # prepare data
+        X_train, X_test = X[train_ix], X[test_ix]
+        y_train, y_test = y[train_ix], y[test_ix]
+        # define model
+        model = get_model(n_inputs, n_outputs)
+        
+        # fit model
+        model.fit(X_train, y_train, verbose=0, epochs=100)
+        # evaluate model on test set
+        mae = model.evaluate(X_test, y_test, verbose=0)
+        # store result
+        count = count+1
+        print('Round ', count, '-> %.3f' % mae)
+        results.append(mae)
+    return results, model
+
+def predictionError(model, X_test, y_test):
+    y_predicted = model.predict(X_test)
+    print(y_predicted)
+    print(y_test)
+    target_columns = ['o3', 'pressure', 'pm25', 'humidity', 'temperature', 'dew', 'no2', 'wind-speed', 'co', 'so2', 'pm10', 'wind-gust']
+    print(y_predicted[1][0])
+    y_test_df = pd.DataFrame(y_test, columns = target_columns) 
+    print(y_test_df.head())
+    # y_test_df.to_csv('downloaded data/y_test_df inside pred error.csv')
+    y_predicted_df = pd.DataFrame(y_predicted, columns = target_columns) 
+    print(y_predicted_df.head())
+    # y_predicted_df.to_csv('downloaded data/y_predicted_df inside pred error.csv')
+    error = {}
+    for col in target_columns:
+        error[col] = ((y_predicted_df[col] - y_test_df[col]) ** 2).mean() ** .5
+    # print(error)
+    maxValues = y_test_df.max()
+    print(maxValues)
+    maxValues.to_csv('downloaded data/maxValues.csv', columns = ["attr", "value"])
+    minValues = y_test_df.min()
+    minValues.to_csv('downloaded data/minValues.csv', columns = ["attr", "value"])
+    error_df = pd.DataFrame.from_dict(error, orient='index')
+    error_df.to_csv('downloaded data/error_df.csv', columns = ["attr", "value"])
+
+    print(minValues)
+    return error
+
+
+def makePrediction(dataframe):
+    # plot for visualization
+    # target_column = 'pm10_median'
+    # print(database.groupby([target_column]).count())
+    dataframe = splitColumn(dataframe)
+    print(dataframe.head(5))
+    print(dataframe.dtypes)
+
     # Only City, County and States are categorical variables
     categorical_columns = ['City', 'County', 'State']
-    label_encoder(database, categorical_columns)
+    label_encoder(dataframe, categorical_columns)
     print("Label encoding for categorical variables")
-    print(database.head(6))
-
-    # 
+    print(dataframe.head(6))
 
     # Separating Feature set and target from the dataframe
     feature_columns = ['day', 'month', 'year', 'State', 'County', 'City']
-    X = database[[x for x in feature_columns]]
-    print(X.head())
+    X = dataframe[[x for x in feature_columns]]
+    print("X to numpy")
+    x_numpy = X.to_numpy()
+    print(x_numpy)
+
 
     target_columns = ['o3', 'pressure', 'pm25', 'humidity', 'temperature', 'dew', 'no2', 'wind-speed', 'co', 'so2', 'pm10', 'wind-gust']
     # target_columns = ['o3_median', 'pressure_median', 'pm25_median', 'humidity_median', 'temperature_median', 'dew_median',
     #                   'no2_median', 'wind-speed_median', 'co_median', 'so2_median', 'pm10_median', 'wind-gust_median']
-    y = database[[x for x in target_columns]]
+    y = dataframe[[x for x in target_columns]]
     print(y.head())
+    y_numpy = y.to_numpy()
+    print(y_numpy)
 
-    # # Feature Scaling (Standardize the data)
-    # print("Standardizing the data")
-    # y_std = feature_scaling(y)
-    
-    # print(y_std.size)
 
-    
+    # Split the data into training and testing set
+    X_train,X_test,y_train,y_test=train_test_split(x_numpy,y_numpy,test_size=0.2,
+                                                random_state=42, shuffle = True) 
+    #Data was splitted as 80% train data and 20% test data.
+    # y_train = y_train.values.reshape(-1,1)
+    # y_test = y_test.values.reshape(-1,1)
 
-    # # mlp for multi-output regression
-    # # get the dataset
-    # def get_dataset():
-    #     X, y = make_regression(n_samples=1000, n_features=10, n_informative=5, n_targets=3, random_state=42)
-    #     print(X)
-    #     print(y)
-    #     return X, y
+    print("X_train shape:",X_train.shape)
+    print("X_test shape:",X_test.shape)
+    print("y_train shape:",y_train.shape)
+    print("y_test shape:",y_test.shape)
+    # y_test_df1 = pd.DataFrame(y_test, columns = target_columns) 
+    # print(y_test_df1.head())
+    # y_test_df1.to_csv('downloaded data/y_test_df at begin.csv')
 
-    # # get the model
-    # def get_model(n_inputs, n_outputs):
-    #     model = Sequential()
-    #     model.add(Dense(20, input_dim=n_inputs, kernel_initializer='he_uniform', activation='relu'))
-    #     model.add(Dense(n_outputs))
-    #     model.compile(loss='mae', optimizer='adam')
-    #     print(model)
-    #     return model
+    # evaluate model
+    results, model = evaluate_model(X_train,y_train)
+    # summarize performance
+    print('MAE: mean %.3f std(%.3f)' % (np.mean(results), np.std(results)))
 
-    # # evaluate a model using repeated k-fold cross-validation
-    # def evaluate_model(X, y):
-    #     results = list()
-    #     n_inputs, n_outputs = X.shape[1], y.shape[1]
-    #     # define evaluation procedure
-    #     cv = RepeatedKFold(n_splits=5, n_repeats=2, random_state=42)
-    #     # enumerate folds
-    #     count = 0
-    #     for train_ix, test_ix in cv.split(X):
-    #         # prepare data
-    #         X_train, X_test = X[train_ix], X[test_ix]
-    #         y_train, y_test = y[train_ix], y[test_ix]
-    #         # define model
-    #         model = get_model(n_inputs, n_outputs)
-    #         # fit model
-    #         model.fit(X_train, y_train, verbose=0, epochs=100)
-    #         # evaluate model on test set
-    #         mae = model.evaluate(X_test, y_test, verbose=0)
-    #         # store result
-    #         count = count+1
-    #         print(count, '>%.3f' % mae)
-    #         results.append(mae)
-    #     return results
+    # find prediction error
+    error = predictionError(model, X_test, y_test)
+    print(error)
+    # error_df = pd.read_csv('downloaded data/error_df.csv', names = ["attr", "errorvalue"])
+    # maxValues = pd.read_csv('downloaded data/maxValues.csv', names = ["attr", "maxvalue"])
+    # minValues = pd.read_csv('downloaded data/minValues.csv', names = ["attr", "minvalue"])
+    error_df = pd.read_csv('downloaded data/error_df.csv')
+    maxValues = pd.read_csv('downloaded data/maxValues.csv')
+    minValues = pd.read_csv('downloaded data/minValues.csv')
+    print(error_df.head())
+    # maxValues = maxValues.set_index('attr').combine_first(minValues.set_index('attr'))
+    # print(maxValues.head())
+    maxValues = pd.concat([maxValues, error_df], axis=1, join="inner")
+    print(maxValues.head())
+    maxValues = pd.concat([maxValues, minValues], axis=1, join="inner")
+    print(maxValues)
+    # remove rows
+    maxValues = maxValues.drop([0])
+    # remove columns
+    # maxValues = maxValues.drop(columns=['attr'])
+    print(maxValues)
+    maxValues.to_csv('downloaded data/combined.csv')
 
-    # # load dataset
-    # X, y = get_dataset()
-    # # evaluate model
-    # results = evaluate_model(X, y)
-    # # summarize performance
-    # print('MAE: mean %.3f std(%.3f)' % (np.mean(results), np.std(results)))
-    sum = 0
-    return sum
+    # for key, value in error.items(): 
+    #     print('Prediction error for'+key+ 'is '+str(value))
+
+
+
 
 if __name__ == '__main__':
     # args = gv.args
