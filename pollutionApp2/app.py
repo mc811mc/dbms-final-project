@@ -1,13 +1,20 @@
 from flask import Flask, render_template
 import pandas as pd
+import sqlite3
 
 app = Flask(__name__)
 
 @app.route('/')
 def show_map():
     # Read CSV data into a DataFrame
-    file_path = "airPollutionCleaned.csv"
-    airData = pd.read_csv(file_path)
+    # file_path = "airPollutionCleaned.csv"
+    # airData = pd.read_csv(file_path)
+    conn = sqlite3.connect('PollutionDatabase.db')
+    sql_query = pd.read_sql_query('''
+                                    SELECT
+                                    * FROM AIR''', conn)
+    airData=pd.DataFrame(sql_query, columns= ['Date', 'City','County','State' , 'latitude', 'longitude','o3_median', 'pressure_median', 'pm25_median', 'humidity_median', 'temperature_median', 'dew_median','no2_median', 'wind-speed_median', 'co_median', 'so2_median', 'pm10_median', 'wind-gust_median'])
+    print(airData.head())
 
     # Create a list of (latitude, longitude) tuples
     # locations = data[["latitude", "longitude"]].values.tolist()
