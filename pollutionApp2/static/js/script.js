@@ -10,8 +10,8 @@ document.getElementById('year_select').addEventListener('change', function() {
     drawScatterPlot(selectedYear, selectedPollutant);
     var pm25Filter = document.getElementById('pm25-range-filter').value;
     var selectedMonth = parseInt(document.getElementById('month_select').value);
-    var selectedDay = parseInt(document.getElementById('day_select').value);
-    drawGeoChart(selectedYear, pm25Filter,selectedMonth, selectedDay);
+    //var selectedDay = parseInt(document.getElementById('day_select').value);
+    drawGeoChart(selectedYear, pm25Filter,selectedMonth);
 });
 
 // pm25-range-filter listener for pm2.5 filtering on map
@@ -19,25 +19,27 @@ document.getElementById('pm25-range-filter').addEventListener('change', function
     var selectedYear = parseInt(document.getElementById('year_select').value);
     var pm25Filter = this.value;
     var selectedMonth = parseInt(document.getElementById('month_select').value);
-    var selectedDay = parseInt(document.getElementById('day_select').value);
-    drawGeoChart(selectedYear, pm25Filter,selectedMonth, selectedDay);
+    //var selectedDay = parseInt(document.getElementById('day_select').value);
+    drawGeoChart(selectedYear, pm25Filter,selectedMonth);
 });
 
+// month_select listener for month filtering on map
 document.getElementById('month_select').addEventListener('change', function() {
     var selectedYear = parseInt(document.getElementById('year_select').value);
-    var pm25Filter = document.getElementById('pm25-range-filter').value;
+    var aqiFilter = document.getElementById('pm25-range-filter').value;
     var selectedMonth = parseInt(document.getElementById('month_select').value);
-    var selectedDay = parseInt(document.getElementById('day_select').value);
-    drawGeoChart(selectedYear, pm25Filter,selectedMonth, selectedDay);
+    //var selectedDay = parseInt(document.getElementById('day_select').value);
+    drawGeoChart(selectedYear, aqiFilter,selectedMonth);
 });
 
-document.getElementById('day_select').addEventListener('change', function() {
-    var selectedYear = parseInt(document.getElementById('year_select').value);
-    var pm25Filter = document.getElementById('pm25-range-filter').value;
-    var selectedMonth = parseInt(document.getElementById('month_select').value);
-    var selectedDay = parseInt(document.getElementById('day_select').value);
-    drawGeoChart(selectedYear, pm25Filter,selectedMonth, selectedDay);
-});
+// day_select listener for day filtering on map
+// document.getElementById('day_select').addEventListener('change', function() {
+//     var selectedYear = parseInt(document.getElementById('year_select').value);
+//     var pm25Filter = document.getElementById('pm25-range-filter').value;
+//     var selectedMonth = parseInt(document.getElementById('month_select').value);
+//     var selectedDay = parseInt(document.getElementById('day_select').value);
+//     drawGeoChart(selectedYear, pm25Filter,selectedMonth, selectedDay);
+// });
 
 // city_select listener for line chart
 document.getElementById('city_select').addEventListener('change', function() {
@@ -112,7 +114,8 @@ function drawMapLegend() {
 drawMapLegend();
 
 // helper for color scheme for markers on map
-function pm25ColorScale(value) {
+function aqiColorScale(value) {
+    console.log("pm color scale value: ", value);
     if (value <= 50) {
         return "green";
     } else if (value <= 100) {
@@ -129,7 +132,7 @@ function pm25ColorScale(value) {
 }
 
 // helper for hide/display logic of markers on map
-function pm25FilterRange(filter) {
+function aqiFilterRange(filter) {
     switch (filter) {
         case "good":
             return [0, 50];
@@ -148,7 +151,7 @@ function pm25FilterRange(filter) {
     }
 }
 
-function drawGeoChart(selectedYear, pm25Filter, selectedMonth, selectedDay) {
+function drawGeoChart(selectedYear, aqiFilter, selectedMonth) {
     const width = 960,
         height = 600;
 
@@ -162,28 +165,28 @@ function drawGeoChart(selectedYear, pm25Filter, selectedMonth, selectedDay) {
         var locationDate = new Date(location.Date);
         var locationYear = locationDate.getFullYear();
         var locationMonth = locationDate.getMonth() + 1;
-        var locationDay = locationDate.getDate();
-        return locationYear === selectedYear && locationMonth === selectedMonth && locationDay === selectedDay;
+        // var locationDay = locationDate.getDate();
+        // return locationYear === selectedYear && locationMonth === selectedMonth && locationDay === selectedDay;
+        return locationYear === selectedYear && locationMonth === selectedMonth;
     });
 
-    const selectedPmRange = pm25FilterRange(pm25Filter);
+    const selectedAqiRange = aqiFilterRange(aqiFilter);
 
-    // todo: maybe add the aqi calculation here
-    // filter by PM range
-    const filteredYearPm = filteredLocations.filter(d => {
-        return d.pm25_median >= selectedPmRange[0] && 
-        d.pm25_median <= selectedPmRange[1];
+    const filteredYearAQI = filteredLocations.filter(d => {
+        const avgAQI = Math.max(d.o3_median, d.pm25_median, d.no2_median, d.co_median, d.so2_median);
+        return avgAQI >= selectedAqiRange[0] && 
+        avgAQI <= selectedAqiRange[1];
     });
 
     svg.append("g")
         .selectAll(".marker")
-        .data(filteredYearPm)
+        .data(filteredYearAQI)
         .join("circle")
         .attr("class", "marker")
         .attr("cx", (d) => projection([d.longitude, d.latitude])[0])
         .attr("cy", (d) => projection([d.longitude, d.latitude])[1])
-        .attr("r", 3) // Adjust the marker size
-        .attr("fill", (d) => pm25ColorScale(d.pm25_median)); // Adjust the marker color based on the pm2.5 logic defined
+        .attr("r", 6) // Adjusts marker size
+        .attr("fill", (d) => aqiColorScale(Math.max(d.o3_median, d.pm25_median, d.no2_median, d.co_median, d.so2_median)));
 }
 
 // ******* LINE CHART ****** //
@@ -225,44 +228,43 @@ function calculateMonthlyAverages(filteredLocations) {
 
 function drawLineChart(city, year) {
     // Set up the SVG and dimensions for the line chart
-  const margin = { top: 20, right: 20, bottom: 30, left: 50 };
-  const width = 650 - margin.left - margin.right;
-  const height = 400 - margin.top - margin.bottom;
+    const margin = { top: 20, right: 20, bottom: 30, left: 50 };
+    const width = 650 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
 
-  d3.select("#line_chart svg").remove();
+    d3.select("#line_chart svg").remove();
 
-  const svg = d3
-    .select("#line_chart")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left}, ${margin.top})`);
+    const svg = d3
+        .select("#line_chart")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-  // Creating and setting up x and y scales, might play around witht this to adjust according to data values we have
-  const xScale = d3.scaleLinear().domain([1, 12]).range([0, width]);
-  const yScale = d3.scaleLinear().domain([0, 80]).range([height, 0]); // Adjust the domain based on your data range
+    // Creating and setting up x and y scales, might play around witht this to adjust according to data values we have
+    const xScale = d3.scaleLinear().domain([1, 12]).range([0, width]);
+    const yScale = d3.scaleLinear().domain([0, 80]).range([height, 0]); // Adjust the domain based on your data range
 
-  // Draw the axes
-  const xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
-  const yAxis = d3.axisLeft(yScale);
+    // Draw the axes
+    const xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
+    const yAxis = d3.axisLeft(yScale);
 
-  svg
-    .append("g")
-    .attr("class", "x axis")
-    .attr("transform", `translate(0, ${height})`)
-    .call(xAxis);
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", `translate(0, ${height})`)
+        .call(xAxis);
 
-  svg.append("g").attr("class", "y axis").call(yAxis);
+    svg.append("g").attr("class", "y axis").call(yAxis);
 
-  // Prepare the data
-  const filteredLocations = locations.filter(
+    // Prepare the data
+    const filteredLocations = locations.filter(
     (location) =>
-      location.City === city &&
-      new Date(location.Date).getFullYear() === year
-  );
+        location.City === city &&
+        new Date(location.Date).getFullYear() === year
+    );
 
-  const monthlyAverages = calculateMonthlyAverages(filteredLocations);
+    const monthlyAverages = calculateMonthlyAverages(filteredLocations);
 //  console.log('filtered locations: ', filteredLocations);
 //  console.log('monthly avgs: ', monthlyAverages);
 
@@ -302,6 +304,21 @@ function drawLineChart(city, year) {
             .text(`${label}`)
             .style("font-size", "12px");
     });
+
+    // X axis label
+    svg.append("text")
+    .attr("text-anchor", "end")
+    .attr("x", width)
+    .attr("y", height + margin.top + 20)
+    .text("Month");
+
+    // Y axis label:
+    svg.append("text")
+        .attr("text-anchor", "end")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left+20)
+        .attr("x", -margin.top)
+        .text("Pollutant AQI")
 
 }
 
@@ -373,7 +390,7 @@ function drawStackedBarChart(selectedYear) {
     // Sort by the sum of all the averaged pollutants and slice to the top 5 based on 'total'
     const top5Counties = countyData.sort((a, b) => b.total - a.total).slice(0, 5);
 
-    const margin = { top: 20, right: 20, bottom: 30, left: 0 };
+    const margin = { top: 20, right: 20, bottom: 30, left: 30 };
     const width = 550 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
 
@@ -465,14 +482,6 @@ function drawScatterPlot(selectedYear, selectedPollutant) {
       const locationYear = new Date(location.Date).getFullYear();
       return locationYear === selectedYear && location[selectedPollutant] !== null;
     });
-  
-    // // Map the filtered data to extract the month and the selected pollutant value
-    // const mappedData = filteredData.map(function (location) {
-    //   const date = new Date(location.Date);
-    //   const month = date.getMonth();
-    //   const value = location[selectedPollutant];
-    //   return { month, value };
-    // });
 
     // Map the filtered data to extract the month and the selected pollutant value
     const mappedData = filteredData.reduce(function(acc, location) {
@@ -499,15 +508,19 @@ function drawScatterPlot(selectedYear, selectedPollutant) {
         return d;
     });
 
+    const margin = { top: 20, right: 20, bottom: 30, left: 50 };
+    const width = 550 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
+
     // Define the x and y scales
-    const xScale = d3.scaleLinear().domain([0, 11]).range([50, 450]);
+    const xScale = d3.scaleLinear().domain([0, 11]).range([50, 500 - margin.right]);
     const yScale = d3.scaleLinear().domain([0, d3.max(mappedData, (d) => d.value)]).range([250, 50]);
   
     // Append the scatter plot points
     d3.select("#scatter_plot svg").remove(); // acts as refresher of the visualization
   
-    const svg = d3.select("#scatter_plot").append("svg").attr("width", 500).attr("height", 300);
-  
+    const svg = d3.select("#scatter_plot").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
+
     svg
       .selectAll("circle")
       .data(mappedData)
@@ -519,12 +532,11 @@ function drawScatterPlot(selectedYear, selectedPollutant) {
       .style("fill", "steelblue");
 
     // Append the x-axis
-    svg.append("g")
-      .attr("transform", "translate(0,250)")
-      .call(d3.axisBottom(xScale).tickFormat((d) => d + 1));
+    svg
+    .append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(xScale).tickFormat((d) => d + 1));
 
     // Append the y-axis
-    svg.append("g")
-      .attr("transform", "translate(50,0)")
-      .call(d3.axisLeft(yScale));
+    svg.append("g").attr("transform", "translate(50,-10)").call(d3.axisLeft(yScale));
   }

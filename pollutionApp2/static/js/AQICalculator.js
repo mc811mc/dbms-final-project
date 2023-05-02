@@ -1,3 +1,4 @@
+/* This class will be useful in case we need to convert a pollutant concentration value to its AQI (Air Quality Index) */
 function Linear(AQIhigh, AQIlow, Conchigh, Conclow, Concentration) {
     var linear;
     var Conc = parseFloat(Concentration);
@@ -7,11 +8,36 @@ function Linear(AQIhigh, AQIlow, Conchigh, Conclow, Concentration) {
     return linear;
 }
 
+function AQIOzone8hr(Concentration) {
+    var Conc = parseFloat(Concentration);
+    var c;
+    var AQI;
+    c = (Math.floor(Conc)) / 1000;
+    console.log("AQI O3: ", c);
+    if (c >= 0 && c < .055) {
+        AQI = Linear(50, 0, 0.054, 0, c);
+    }
+    else if (c >= .055 && c < .071) {
+        AQI = Linear(100, 51, .070, .055, c);
+    }
+    else if (c >= .071 && c < .086) {
+        AQI = Linear(150, 101, .085, .071, c);
+    }
+    else if (c >= .086 && c < .106) {
+        AQI = Linear(200, 151, .105, .086, c);
+    }
+    else {
+        AQI = Linear(300, 201, .200, .106, c);
+    }
+    return AQI;
+}
+
 function AQIPM25(Concentration) {
     var Conc = parseFloat(Concentration);
     var c;
     var AQI;
     c = (Math.floor(10 * Conc)) / 10;
+    console.log("AQI pm2.5: ", c);
     if (c >= 0 && c < 12.1) {
         AQI = Linear(50, 0, 12, 0, c);
     }
@@ -30,138 +56,18 @@ function AQIPM25(Concentration) {
     else if (c >= 250.5 && c < 350.5) {
         AQI = Linear(400, 301, 350.4, 250.5, c);
     }
-    else if (c >= 350.5 && c < 500.5) {
+    else {
         AQI = Linear(500, 401, 500.4, 350.5, c);
     }
-    else {
-        AQI = "PM25message";
-    }
-    return AQI;
-}
-//line63
-function AQIPM10(Concentration) {
-    var Conc = parseFloat(Concentration);
-    var c;
-    var AQI;
-    c = Math.floor(Conc);
-    if (c >= 0 && c < 55) {
-        AQI = Linear(50, 0, 54, 0, c);
-    }
-    else if (c >= 55 && c < 155) {
-        AQI = Linear(100, 51, 154, 55, c);
-    }
-    else if (c >= 155 && c < 255) {
-        AQI = Linear(150, 101, 254, 155, c);
-    }
-    else if (c >= 255 && c < 355) {
-        AQI = Linear(200, 151, 354, 255, c);
-    }
-    else if (c >= 355 && c < 425) {
-        AQI = Linear(300, 201, 424, 355, c);
-    }
-    else if (c >= 425 && c < 505) {
-        AQI = Linear(400, 301, 504, 425, c);
-    }
-    else if (c >= 505 && c < 605) {
-        AQI = Linear(500, 401, 604, 505, c);
-    }
-    else {
-        AQI = "PM10message";
-    }
-    return AQI;
-}
-//line104
-function AQICO(Concentration) {
-    var Conc = parseFloat(Concentration);
-    var c;
-    var AQI;
-    c = (Math.floor(10 * Conc)) / 10;
-    if (c >= 0 && c < 4.5) {
-        AQI = Linear(50, 0, 4.4, 0, c);
-    }
-    else if (c >= 4.5 && c < 9.5) {
-        AQI = Linear(100, 51, 9.4, 4.5, c);
-    }
-    else if (c >= 9.5 && c < 12.5) {
-        AQI = Linear(150, 101, 12.4, 9.5, c);
-    }
-    else if (c >= 12.5 && c < 15.5) {
-        AQI = Linear(200, 151, 15.4, 12.5, c);
-    }
-    else if (c >= 15.5 && c < 30.5) {
-        AQI = Linear(300, 201, 30.4, 15.5, c);
-    }
-    else if (c >= 30.5 && c < 40.5) {
-        AQI = Linear(400, 301, 40.4, 30.5, c);
-    }
-    else if (c >= 40.5 && c < 50.5) {
-        AQI = Linear(500, 401, 50.4, 40.5, c);
-    }
-    else {
-        AQI = "Out of Range";
-    }
     return AQI;
 }
 
-function AQISO224hr(Concentration) {
-    var Conc = parseFloat(Concentration);
-    var c;
-    var AQI;
-    c = Math.floor(Conc);
-    if (c >= 0 && c <= 304) {
-        AQI = "SO224hrmessage";
-    }
-
-    else if (c >= 304 && c < 605) {
-        AQI = Linear(300, 201, 604, 305, c);
-    }
-    else if (c >= 605 && c < 805) {
-        AQI = Linear(400, 301, 804, 605, c);
-    }
-    else if (c >= 805 && c <= 1004) {
-        AQI = Linear(500, 401, 1004, 805, c);
-    }
-    else {
-        AQI = "Out of Range";
-    }
-    return AQI;
-}
-//line186
-function AQIOzone8hr(Concentration) {
-    var Conc = parseFloat(Concentration);
-    var c;
-    var AQI;
-    c = (Math.floor(Conc)) / 1000;
-
-    if (c >= 0 && c < .055) {
-        AQI = Linear(50, 0, 0.054, 0, c);
-    }
-    else if (c >= .055 && c < .071) {
-        AQI = Linear(100, 51, .070, .055, c);
-    }
-    else if (c >= .071 && c < .086) {
-        AQI = Linear(150, 101, .085, .071, c);
-    }
-    else if (c >= .086 && c < .106) {
-        AQI = Linear(200, 151, .105, .086, c);
-    }
-    else if (c >= .106 && c < .201) {
-        AQI = Linear(300, 201, .200, .106, c);
-    }
-    else if (c >= .201 && c < .605) {
-        AQI = "O3message";
-    }
-    else {
-        AQI = "Out of Range";
-    }
-    return AQI;
-}
-//line219
 function AQINO2(Concentration) {
     var Conc = parseFloat(Concentration);
     var c;
     var AQI;
     c = (Math.floor(Conc)) / 1000;
+    console.log("AQI NO2: ", c);
     if (c >= 0 && c < .054) {
         AQI = Linear(50, 0, .053, 0, c);
     }
@@ -180,11 +86,56 @@ function AQINO2(Concentration) {
     else if (c >= 1.250 && c < 1.650) {
         AQI = Linear(400, 301, 1.649, 1.250, c);
     }
-    else if (c >= 1.650 && c <= 2.049) {
+    else {
         AQI = Linear(500, 401, 2.049, 1.650, c);
     }
+    return AQI;
+}
+
+function AQICO(Concentration) {
+    var Conc = parseFloat(Concentration);
+    var c;
+    var AQI;
+    c = (Math.floor(10 * Conc)) / 10;
+    console.log("AQI CO: ", c);
+    if (c >= 0 && c < 4.5) {
+        AQI = Linear(50, 0, 4.4, 0, c);
+    }
+    else if (c >= 4.5 && c < 9.5) {
+        AQI = Linear(100, 51, 9.4, 4.5, c);
+    }
+    else if (c >= 9.5 && c < 12.5) {
+        AQI = Linear(150, 101, 12.4, 9.5, c);
+    }
+    else if (c >= 12.5 && c < 15.5) {
+        AQI = Linear(200, 151, 15.4, 12.5, c);
+    }
+    else if (c >= 15.5 && c < 30.5) {
+        AQI = Linear(300, 201, 30.4, 15.5, c);
+    }
+    else if (c >= 30.5 && c < 40.5) {
+        AQI = Linear(400, 301, 40.4, 30.5, c);
+    }
     else {
-        AQI = "Out of Range";
+        AQI = Linear(500, 401, 50.4, 40.5, c);
+    }
+    return AQI;
+}
+
+function AQISO224hr(Concentration) {
+    var Conc = parseFloat(Concentration);
+    var c;
+    var AQI;
+    c = Math.floor(Conc);
+    console.log("AQI SO2: ", c);
+    if (c >= 304 && c < 605) {
+        AQI = Linear(300, 201, 604, 305, c);
+    }
+    else if (c >= 605 && c < 805) {
+        AQI = Linear(400, 301, 804, 605, c);
+    }
+    else {
+        AQI = Linear(500, 401, 1004, 805, c);
     }
     return AQI;
 }
