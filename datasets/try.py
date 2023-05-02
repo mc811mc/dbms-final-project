@@ -1,5 +1,6 @@
 import pandas as pd 
 error_df = pd.read_csv('../downloaded data/error_df.csv', names = ["attr", "errorvalue"])
+# since there was no column names at first 
 maxValues = pd.read_csv('../downloaded data/maxValues.csv', names = ["attr", "maxvalue"])
 minValues = pd.read_csv('../downloaded data/minValues.csv', names = ["attr", "minvalue"])
 print(error_df.head())
