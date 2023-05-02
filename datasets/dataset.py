@@ -6,7 +6,7 @@ class DATASETS():
         super(DATASETS, self).__init__()
         self.type = type
         if(type == 'air'):
-            print("Getting air dataset")
+            print("----------------- Getting air dataset -------------------")
             self.inputdf = pd.read_csv('downloaded data/Air_pollution_data.csv')
             self.inputdf = self.inputdf[['Date','City', 'County', 'State', 'latitude', 'longitude',
                                 'o3_median', 'pressure_median', 'pm25_median', 'humidity_median',
@@ -17,7 +17,7 @@ class DATASETS():
             
 
         if(type == 'water'):
-            print("Getting water dataset")
+            print("---------------- Getting water dataset -----------------------")
             self.inputdf = pd.read_csv('downloaded data/Water_pollution_data.csv')
             self.inputdf = self.inputdf[['OrganizationIdentifier', 'ActivityMediaSubdivisionName', 'ActivityStartDate', 'ActivityDepthHeightMeasure/MeasureValue',
                                'ActivityConductingOrganizationText', 'HydrologicCondition', 'HydrologicEvent',
@@ -31,7 +31,7 @@ class DATASETS():
     def cleanDataframe(self):
         # do data cleaning here
         # delete columns with zero feature importance
-        print('Cleaning dataset')
+        print('------------------ Cleaning dataset ------------------')
         if(self.type == 'air'):
             # just make the unavailable numerical values zero
             self.inputdf = self.inputdf.fillna(0)

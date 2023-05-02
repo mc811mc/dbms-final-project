@@ -3,4 +3,7 @@ pandas
 matplotlib
 seaborn
 mysql.connector
+scikit-learn
+tensorflow
+keras
 # sqlite3
