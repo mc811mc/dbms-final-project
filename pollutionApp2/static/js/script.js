@@ -288,6 +288,16 @@ function drawLineChart(city, year) {
             .attr("stroke-width", 2)
             .attr("d", lineGenerator);
 
+        // add dot marks
+        svg.selectAll(`.${key}-dot`)
+        .data(monthlyAverages)
+        .join("circle")
+        .attr("class", `${key}-dot`)
+        .attr("cx", d => xScale(d.month))
+        .attr("cy", d => yScale(d[key]))
+        .attr("r", 4)
+        .attr("fill", color)
+
         // Add legend
         const legend = svg.append("g")
             .attr("transform", `translate(${width - 80}, ${20 + 20 * index})`);
@@ -390,11 +400,12 @@ function drawStackedBarChart(selectedYear) {
     // Sort by the sum of all the averaged pollutants and slice to the top 5 based on 'total'
     const top5Counties = countyData.sort((a, b) => b.total - a.total).slice(0, 5);
 
-    const margin = { top: 20, right: 20, bottom: 30, left: 30 };
+    // setting dimensions and margin of the visualization
+    const margin = { top: 20, right: 20, bottom: 40, left: 40 };
     const width = 550 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
 
-    d3.select("#stacked_bar_chart svg").remove();
+    d3.select("#stacked_bar_chart svg").remove(); // helps repaint a new stacked bar chart
   
     const svg = d3
       .select("#stacked_bar_chart")
@@ -404,17 +415,9 @@ function drawStackedBarChart(selectedYear) {
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
   
-    const xScale = d3
-      .scaleBand()
-      .domain(top5Counties.map((d) => d.county))
-      .range([0, width])
-      .padding(0.3);
-  
-    const yScale = d3
-      .scaleLinear()
-      .domain([0, d3.max(top5Counties, (d) => d.total)])
-      .range([height, 0]);
-  
+    const xScale = d3.scaleBand().domain(top5Counties.map((d) => d.county)).range([0, width]).padding(0.3);
+    const yScale = d3.scaleLinear().domain([0, d3.max(top5Counties, (d) => d.total)]).range([height, 0]);
+
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
   
@@ -431,19 +434,53 @@ function drawStackedBarChart(selectedYear) {
   
     const stack = d3.stack().keys(pollutants.map((p) => p.key));
     const stackedData = stack(top5Counties);
-  
+    
+    // ----------------
+    // Highlight a specific pollutant subgroup when hovered
+    // ----------------
+    // What happens when user hover a bar
+    var mouseover = function (d) {
+        // what subgroup are we hovering?
+        var subgroupName = pollutants.find(pollutant => d3.select(this).classed(pollutant.key)).key;
+        // Reduce opacity of all rect to 0.2
+        d3.selectAll(".myRect").style("opacity", 0.2)
+        // Highlight all rects of this subgroup with opacity 0.8. It is possible to select them since they have a specific class = their name.
+        d3.selectAll("." + subgroupName)
+            .style("opacity", 1)
+    }
+
+    // When user does not hover anymore
+    var mouseleave = function (d) {
+        // Back to normal opacity: 0.8
+        d3.selectAll(".myRect")
+            .style("opacity", 0.8)
+    }
+
+    var tooltip = d3.select("#stacked_bar_chart")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "1px")
+    .style("border-radius", "5px")
+    .style("padding", "10px");
+
     stackedData.forEach((pollutant, i) => {
       svg
         .selectAll(`.pollutant-${i}`)
         .data(pollutant)
         .enter()
         .append("rect")
-        .attr("class", `pollutant-${i}`)
+        .attr("class", `pollutant-${i} myRect ${pollutants[i].key}`) // Add the class names for hover effect
         .attr("x", (d) => xScale(d.data.county))
         .attr("y", (d) => yScale(d[1]))
         .attr("width", xScale.bandwidth())
         .attr("height", (d) => yScale(d[0]) - yScale(d[1]))
-        .style("fill", pollutants[i].color);
+        .style("fill", pollutants[i].color)
+        .style("opacity", 0.8) // Set the initial opacity
+        .on("mouseover", mouseover) // Add the mouseover event
+        .on("mouseleave", mouseleave); // Add the mouseleave event
     });
     
     // Add legend
@@ -465,6 +502,21 @@ function drawStackedBarChart(selectedYear) {
         .text(pollutant.label)
         .style("font-size", "12px");
     });
+
+    // Add X axis label:
+    svg.append("text")
+    .attr("text-anchor", "end")
+    .attr("x", width)
+    .attr("y", 10 + height + margin.bottom / 2)
+    .text("County Name");
+
+    // Y axis label:
+    svg.append("text")
+        .attr("text-anchor", "end")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left + 11)
+        .attr("x", -margin.top)
+        .text("Pollutant AQI");
 }
 
 
@@ -475,29 +527,28 @@ document.getElementById("pollutant_select").addEventListener("change", function 
     drawScatterPlot(selectedYear, selectedPollutant);
   });
 
-
 function drawScatterPlot(selectedYear, selectedPollutant) {
     // Filter data for the selected year and pollutant
-    const filteredData = locations.filter(function (location) {
-      const locationYear = new Date(location.Date).getFullYear();
-      return locationYear === selectedYear && location[selectedPollutant] !== null;
+    const filteredData = locations.filter(location => {
+        const locationYear = new Date(location.Date).getFullYear();
+        return locationYear === selectedYear && location[selectedPollutant] !== null;
     });
 
     // Map the filtered data to extract the month and the selected pollutant value
-    const mappedData = filteredData.reduce(function(acc, location) {
+    const mappedData = filteredData.reduce(function (acc, location) {
         const date = new Date(location.Date);
         const month = date.getMonth();
         const value = location[selectedPollutant];
-        
+
         if (acc[month]) {
             acc[month].sum += value;
             acc[month].count += 1;
         } else {
             acc[month] = {
-            month: month,
-            value: 0,
-            sum: value,
-            count: 1
+                month: month,
+                value: 0,
+                sum: value,
+                count: 1
             };
         }
         return acc;
@@ -508,35 +559,51 @@ function drawScatterPlot(selectedYear, selectedPollutant) {
         return d;
     });
 
-    const margin = { top: 20, right: 20, bottom: 30, left: 50 };
+    const margin = { top: 20, right: 20, bottom: 40, left: 40 };
     const width = 550 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
 
-    // Define the x and y scales
-    const xScale = d3.scaleLinear().domain([0, 11]).range([50, 500 - margin.right]);
-    const yScale = d3.scaleLinear().domain([0, d3.max(mappedData, (d) => d.value)]).range([250, 50]);
-  
-    // Append the scatter plot points
-    d3.select("#scatter_plot svg").remove(); // acts as refresher of the visualization
-  
-    const svg = d3.select("#scatter_plot").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    svg
-      .selectAll("circle")
-      .data(mappedData)
-      .enter()
-      .append("circle")
-      .attr("cx", (d) => xScale(d.month))
-      .attr("cy", (d) => yScale(d.value))
-      .attr("r", 5)
-      .style("fill", "steelblue");
+    // Define the x and y scales
+    const xScale = d3.scaleLinear().domain([0, 11]).range([0, width]);
+    const yScale = d3.scaleLinear().domain([0, d3.max(mappedData, (d) => d.value)]).range([height, 0]);
+
+    // Refresh the visualization
+    d3.select("#scatter_plot svg").remove();
+
+    const svg = d3.select("#scatter_plot").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    svg.selectAll("circle")
+        .data(mappedData)
+        .enter()
+        .append("circle")
+        .attr("cx", (d) => xScale(d.month))
+        .attr("cy", (d) => yScale(d.value))
+        .attr("r", 5)
+        .style("fill", "steelblue");
 
     // Append the x-axis
-    svg
-    .append("g")
-    .attr("transform", `translate(0,${height})`)
-    .call(d3.axisBottom(xScale).tickFormat((d) => d + 1));
+    svg.append("g").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(xScale).tickFormat((d) => d + 1));
 
     // Append the y-axis
-    svg.append("g").attr("transform", "translate(50,-10)").call(d3.axisLeft(yScale));
-  }
+    svg.append("g").call(d3.axisLeft(yScale));
+
+    // Add X axis label:
+    svg.append("text")
+        .attr("text-anchor", "end")
+        .attr("x", width)
+        .attr("y", 10 + height + margin.bottom / 2)
+        .text("Month");
+
+    // Y axis label:
+    svg.append("text")
+        .attr("text-anchor", "end")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left + 20)
+        .attr("x", -margin.top)
+        .text("Pollutant AQI");
+}

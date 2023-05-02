@@ -22,7 +22,7 @@ def show_map():
                                                     'o3_median', 'pressure_median', 'pm25_median', 'humidity_median', 
                                                     'temperature_median', 'dew_median','no2_median', 'wind-speed_median',
                                                     'co_median', 'so2_median', 'pm10_median', 'wind-gust_median'])
-    print(airData.head())
+    # print(airData.head())
 
     # Create a list of (latitude, longitude) tuples
     # locations = data[["latitude", "longitude"]].values.tolist()

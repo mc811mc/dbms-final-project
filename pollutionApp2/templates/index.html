@@ -11,19 +11,19 @@
 </head>
 <body>
     <h1>Pollution Visualizer</h1>
-    <div id="year-select-container">
-        <label for="year_select">Select Year to Analyze</label>
-        <select id="year_select">
-            <option value="" selected>-- Select a Year --</option>
-            {% for year in unique_years %}
-            <option value="{{ year }}">{{ year }}</option>
-            {% endfor %}
-        </select>
+    <div id="year-select-container-flex">
+        <div id="year-select-container">
+            <label for="year_select">Select Year to Analyze</label>
+            <select id="year_select">
+                <option value="" selected>-- Select a Year --</option>
+                {% for year in unique_years %}
+                <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
-    
 
     <div id="map-and-legend-container">
-        
         <div id="map-controls">
             <label for="pm25-range-filter">Filter by AQI Range:</label>
             <select id="pm25-range-filter">
@@ -48,14 +48,11 @@
             <svg id="map" width="960" height="600"></svg>
             <div id="legend"></div>
         </div>
-        
     </div>
     
-
-    
     <div id="plots-flex-container">
-        <div>
-            <label>Select a City:</label>
+        <div id="line-chart-container">
+            <label style="margin-left: 28px;">Select a City:</label>
             <select id="city_select">
                 <option value="" selected>-- Select a City --</option>
                 {% for city in unique_cities %}
@@ -64,7 +61,10 @@
             </select>
             <div id="line_chart" style="width: 100%; height: 300px;"></div>
         </div>
-        <div id="stacked_bar_chart"></div>
+        <div id="stacked-bar-chart-container">
+            <h4 style="text-align: center; margin-bottom: 5px">Top 5 Most Polluted Counties</h4>
+            <div id="stacked_bar_chart"></div>
+        </div>
         <div id="scatter_plot_container">
             <label for="pollutant_select">Select a Pollutant:</label>
             <select id="pollutant_select">
