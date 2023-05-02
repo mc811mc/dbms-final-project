@@ -305,7 +305,7 @@ def evaluate_model(X, y):
     # print(y.head())
     
     # define evaluation procedure
-    cv = RepeatedKFold(n_splits=2, n_repeats=1, random_state=42)
+    cv = RepeatedKFold(n_splits=5, n_repeats=2, random_state=42)
     # enumerate folds
     count = 0
     print("----------------RepeatedKFold evaluation---------------")
@@ -314,7 +314,7 @@ def evaluate_model(X, y):
         X_train, X_test = X[train_ix], X[test_ix]
         y_train, y_test = y[train_ix], y[test_ix]
         # define model
-        print("----------- Defining the model ------------")
+        # print("----------- Defining the model ------------")
         model = get_model(n_inputs, n_outputs)
         
         # fit model
@@ -380,6 +380,7 @@ def makePrediction(dataframe):
     print(dataframe.head(5))
 
     # Separating Feature set and target from the dataframe
+    # Lat, long are dropped
     feature_columns = ['day', 'month', 'year', 'City' , 'County', 'State']
     X = dataframe[[x for x in feature_columns]]
     # print("X to numpy")
