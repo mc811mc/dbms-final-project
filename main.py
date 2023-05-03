@@ -7,7 +7,7 @@ from numpy import std
 from sklearn.datasets import make_regression
 from sklearn.model_selection import RepeatedKFold
 from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Dense
