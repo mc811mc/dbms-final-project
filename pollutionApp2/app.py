@@ -32,12 +32,17 @@ def show_map():
     attribute_names = [col for col in airData.columns if col not in ['latitude', 'longitude']]
 
     # computing a set of city names from the dataset, to be used in dropdown menu of control panel
-    unique_cities = airData['City'].unique().tolist()
+    #unique_cities = airData['City'].unique().tolist()
+    # Create a list of unique city, county, state tuples and sort them by state, county, and city
+    unique_locations = airData[['City', 'County', 'State']].drop_duplicates().sort_values(['State', 'County', 'City'])
+    unique_locations['location'] = unique_locations['City'] + ', ' + unique_locations['County'] + ', ' + unique_locations['State']
+    unique_location_strings = unique_locations['location'].tolist()
+
 
     # Assuming you have loaded your dataset into a pandas DataFrame called 'df'
     unique_years = sorted(pd.to_datetime(airData['Date']).dt.year.unique(), reverse=True)
 
-    return render_template('index.html', locations=locations, attribute_names=attribute_names, unique_cities=unique_cities, unique_years=unique_years)
+    return render_template('index.html', locations=locations, attribute_names=attribute_names, unique_cities=unique_location_strings, unique_years=unique_years)
 
 if __name__ == '__main__':
     app.run(debug=True)

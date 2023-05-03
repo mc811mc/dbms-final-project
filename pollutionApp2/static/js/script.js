@@ -1,7 +1,8 @@
 /****** EVENT LISTENERS FOR CONTROL PANEL *******/
 // year_select listener for map, linechart, stacked bar chart and scatter plot
 document.getElementById('year_select').addEventListener('change', function() {
-    var selectedCity = document.getElementById('city_select').value;
+    var selectedLocation = document.getElementById('city_select').value;
+    var selectedCity = selectedLocation.split(',')[0].trim();
     var selectedYear = parseInt(this.value);
     drawLineChart(selectedCity, selectedYear);
     drawGeoChart(selectedYear); // Add this line to update the map markers
@@ -43,7 +44,8 @@ document.getElementById('month_select').addEventListener('change', function() {
 
 // city_select listener for line chart
 document.getElementById('city_select').addEventListener('change', function() {
-    var selectedCity = this.value;
+    var selectedLocation = this.value;
+    var selectedCity = selectedLocation.split(',')[0].trim();
     var selectedYear = parseInt(document.getElementById('year_select').value);
     drawLineChart(selectedCity, selectedYear);
 });
@@ -92,6 +94,9 @@ function drawMapLegend() {
     ];
 
     const legend = d3.select("#legend")
+    .append("svg")
+    .attr("width", 300)
+    .attr("height", 150);
 
     legend.selectAll("rect")
         .data(legendData)
