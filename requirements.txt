@@ -2,9 +2,11 @@ numpy
 pandas
 matplotlib
 seaborn
-mysql.connector
 scikit-learn
-tensorflow
+# tensorflow-deps
+tensorflow-macos
+tensorflow-metal
+# tensorflow == 2.11.0
 keras
 flask
 # sqlite3

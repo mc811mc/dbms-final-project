@@ -4,16 +4,16 @@ import pandas as pd
 import sqlite3
 from numpy import mean
 from numpy import std
-from sklearn.datasets import make_regression
+# from sklearn.datasets import make_regression
 from sklearn.model_selection import RepeatedKFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense
 import matplotlib.pyplot as plt
 import seaborn as sns
-import re
 
 def main():
     air_dataset =  dataset.get_clean_dataset('air')
@@ -305,7 +305,7 @@ def evaluate_model(X, y):
     # print(y.head())
     
     # define evaluation procedure
-    cv = RepeatedKFold(n_splits=5, n_repeats=2, random_state=42)
+    cv = RepeatedKFold(n_splits=2, n_repeats=2, random_state=42)
     # enumerate folds
     count = 0
     print("----------------RepeatedKFold evaluation---------------")
